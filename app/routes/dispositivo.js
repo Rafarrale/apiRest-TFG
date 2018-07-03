@@ -6,7 +6,6 @@ var mongoUtil = require('../models/piMlabTestDatabase');
 var logDisp = require('../models/modules');
 var ObjectID = require('mongodb').ObjectID;
 var mqtt = require('../models/mqtt')
-var modules = require('../models/modules');
 
 // router middleware
 router.use(function (req, res, next) {
@@ -21,7 +20,6 @@ var estadoInicialDisp = 'conectado';
 var constElimina = "elimina";
 var constDispAñadido = "Añadido";
 var constConfAlarma = 'confAlarma';
-var constEncripta = 'encripta';
 
 
 // create application/x-www-form-urlencoded parser

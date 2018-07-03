@@ -30,7 +30,6 @@ var constIdRegistra = 'idRegistra';
 var constEncripta = 'encripta';
 var constConfirma = '200';
 var constConfirmaDisp = '201';
-var constTerminoSend = '/'
 var constI = 'I';
 var constO = 'O';
 var constCerrado = 'cerrado';
@@ -108,7 +107,7 @@ module.exports = {
                             if (err) throw err;
                             if (result != null) {
                                 console.log("Se encuentra en Casa");
-                                var res = constConfirma + '#' + result.homeUsu + constTerminoSend;
+                                var res = constConfirma + '#' + result.homeUsu;
                                 client.publish(myId, res, { qos: 2, retain: false });
                                 /** Subscribimos el topic si ya se encuentra en casa para ponerlo en estado online u offline
                                  * solo si ya se encuentra en una casa

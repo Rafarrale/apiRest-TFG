@@ -8,10 +8,6 @@ var constConfAlarma = "confAlarma";
 var constAlarma = "alarma";
 var constResponseAlarma = 'respAlarma';
 var ObjectID = require('mongodb').ObjectID;
-var modules = require('../models/modules');
-
-var constEncripta = 'encripta';
-var constTerminoSend = '/';
 
 // router middleware
 router.use(function (req, res, next) {
