@@ -53,7 +53,7 @@ mongoUtil.connectToServer(function (err) {
 		var tipoRest = req.params.tipo;
 		var query = { homeUsu: homeUsuRest };
 		var filtro = { dispositivos: 1 }; 
-		db.collection("casa").findOne(query, filtro, function (err, result) {
+		db.collection("casa").findOne(query, filtro, function (err, result) {  // TODO: collection null solucionar
 			if (err) throw err;
 			if (result == null || result.dispositivos == null) {
 				var auxEmpty = [{}];
