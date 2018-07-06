@@ -17,7 +17,9 @@ var constElimina = "elimina";
 var constNuevo = "nuevo";
 var constAlarma = 'alarma';
 var constConfAlarma = 'confAlarma';
+var constConfInterruptor = 'confInterruptor';
 var constResponseAlarma = 'respAlarma';
+var constResponseInterruptor = 'respInterruptor';
 var constBateriaBajaNum = 5;
 var constBateriaBaja = 'Batería Baja';
 var constBateria = 'bateria';
@@ -49,6 +51,9 @@ var constEsp = [
     },
     {
         tipo: constResponseAlarma, datos: '1' /* --> Si mandamos respAlarma#casa# = {otrosDatos(datos - 1), casa(0)} */
+    },
+    {
+        tipo: constResponseInterruptor, datos: '2' /* --> Si mandamos respInterruptor#casa#idDisp# = {otrosDatos(datos - 1), casa(1), idDisp(0)} */
     },
     {
         tipo: constEstado, datos: '2' /* --> Si mandamos estado#mac#tipoEstado# = {otrosDatos(datos - 1),mac(1), tipoEstado(0)} */
@@ -239,7 +244,7 @@ module.exports = {
                     db.collection("casa").findOne({ homeUsu: casa }, { 'configuracion.estadoAlarma': 1, dispositivos: 1 }, function (err, result) {
                         if (result != null) {
                             var auxEstadoAlarma = result.configuracion.estadoAlarma;
-                            for(var i = 0; i < result.dispositivos.length; i++){
+                            for (var i = 0; i < result.dispositivos.length; i++) {
                                 var topic = constConfAlarma + '/' + result.dispositivos[i].mac;
                                 if (auxEstadoAlarma == constArmar) {
                                     console.log('Armar');
@@ -257,6 +262,38 @@ module.exports = {
                                     console.log('Alarma');
                                     // Mandamos el estado de la alarma a los dispositivos
                                     client.publish(topic, auxEstadoAlarma, { qos: 2, retain: false });
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    },
+    responseEstadoInterruptor: function (client) {
+        client.on('message', function (topic, message, packet) {
+            if (topic == constResponseInterruptor) {
+                var mensaje = `${message.toString()}`;
+                mongoUtil.connectToServer(function (err) {
+                    var db = mongoUtil.getDb();
+                    var datos = obtenEsp(mensaje); // respInterruptor#casa#idDisp#
+                    var casa = datos[0][1];
+                    var idDisp = datos[0][0];
+                    db.collection("casa").findOne({ homeUsu: casa }, { dispositivos: 1 }, function (err, result) {
+                        if (result != null) {
+                            for (var i = 0; i < result.dispositivos.length; i++) {
+                                if (JSON.stringify(result.dispositivos[i]._id) == JSON.stringify(new ObjectID(idDisp))) {
+                                    var topic = constConfInterruptor + '/' + result.dispositivos[i].mac;
+                                    if(result.dispositivos[i].caracteristicas != null){
+                                        if (result.dispositivos[i].caracteristicas.activa) {
+                                            console.log('activar');
+                                            // Mandamos el estado del interruptor al dispositivo
+                                            client.publish(topic, 'true', { qos: 2, retain: false });
+                                        }else{
+                                            console.log('desactivar');
+                                            client.publish(topic, 'false', { qos: 2, retain: false });
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -424,23 +461,23 @@ function obtenEsp(mensaje) {
     var datos = 0;
     var i = 0;
     var sal = false;
-    if(mensaje.length <= 300){
+    if (mensaje.length <= 300) {
         for (i = 0; mensaje[i] != '#' && i < mensaje.length; i++) {
-            if(compruebaAlfanumerico(mensaje[i])){
-                auxTipo += mensaje[i];   
-            }else{
+            if (compruebaAlfanumerico(mensaje[i])) {
+                auxTipo += mensaje[i];
+            } else {
                 sal = true;
                 break;
             }
         }
-        if(!sal || validaTipo(auxTipo)){
+        if (!sal || validaTipo(auxTipo)) {
             i++;
             for (var x = 0; x < constEsp.length; x++) {
                 if (constEsp[x].tipo == auxTipo) {
                     datos = constEsp[x].datos;
                 }
             }
-            if(datos != 0){
+            if (datos != 0) {
                 for (; i < mensaje.length; i++) {
                     if (mensaje[i] != '#') {
                         auxVal += mensaje[i];
@@ -457,12 +494,12 @@ function obtenEsp(mensaje) {
     return arrayRes;
 }
 
-function compruebaAlfanumerico(TCode){
+function compruebaAlfanumerico(TCode) {
     var res = true;
-    if( /[^a-zA-Z0-9#/]/.test( TCode ) ) {
+    if (/[^a-zA-Z0-9#/]/.test(TCode)) {
         res = false;
-     }
-     return res;
+    }
+    return res;
 }
 
 function isHex(h) {
@@ -482,10 +519,10 @@ function isHex(h) {
     return res;
 }
 
-function validaTipo(tipo){
+function validaTipo(tipo) {
     var res = false;
-    for(var i = 0; i < constEsp.length; i++){
-        if(constEsp[i].tipo == tipo){
+    for (var i = 0; i < constEsp.length; i++) {
+        if (constEsp[i].tipo == tipo) {
             res = true;
             break;
         }

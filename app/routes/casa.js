@@ -4,9 +4,13 @@ var express = require('express'),
 var Usuario = require('../models/piUserModel');
 var mongoUtil = require('../models/piMlabTestDatabase');
 var mqtt = require('../models/mqtt')
+
+/** Constantes */
+var constElimina = "elimina";
 var constConfAlarma = "confAlarma";
 var constAlarma = "alarma";
 var constResponseAlarma = 'respAlarma';
+var constResponseInterruptor = 'respInterruptor';
 var ObjectID = require('mongodb').ObjectID;
 
 // router middleware
@@ -26,10 +30,17 @@ var client = mqtt.connectToMQTT;
 mqtt.subscribe(client, constAlarma);
 mqtt.subscribe(client, constConfAlarma);
 mqtt.subscribe(client, constResponseAlarma);
+mqtt.subscribe(client, constResponseInterruptor);
+mqtt.subscribe(client, 'idRegistra');
+mqtt.subscribe(client, 'bateria');
 mqtt.recibeAlarmas(client);
 mqtt.recibeEstadoBateria(client);
 mqtt.configuraDispositivos(client);
 mqtt.responseEstadoDispositivos(client);
+mqtt.responseEstadoInterruptor(client);
+mqtt.recibeId(client);
+mqtt.recibeEstadoSensor(client);
+
 
 var consDesarmar = "desarmar";
 var constO = 'O';
@@ -241,7 +252,13 @@ mongoUtil.connectToServer(function (err) {
 		var miId = req.body._id;
 		var miHomeUsu = req.body.homeUsu;
 		var myquery = { $or: [{ _id: miId }, { homeUsu: miHomeUsu }] };
-		db.collection("casa").findOne(myquery, { passCasa: 1 }, function (err, obj) {
+		db.collection("casa").findOne(myquery, { dispositivos: 1 }, function (err, obj) {
+			if(obj.dispositivos != null){
+				for(var i = 0; i < obj.dispositivos.length; i++){
+					var idDisp = (obj.dispositivos[i]._id).toString();
+					client.publish(idDisp, constElimina, { qos: 2, retain: false });
+				}
+			}
 			db.collection("casa").deleteOne(myquery, function (err, obj) {
 				if (err) throw err;
 				console.log("1 document deleted");

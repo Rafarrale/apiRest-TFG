@@ -20,6 +20,9 @@ var estadoInicialDisp = 'conectado';
 var constElimina = "elimina";
 var constDispAñadido = "Añadido";
 var constConfAlarma = 'confAlarma';
+var constConfInterruptor = 'confInterruptor';
+var constResponseInterruptor = 'respInterruptor';
+
 
 
 // create application/x-www-form-urlencoded parser
@@ -27,11 +30,6 @@ var urlencodedParser = bodyParser.urlencoded({ extended: true })
 
 /** MQTT */
 var client = mqtt.connectToMQTT;
-mqtt.subscribe(client, 'idRegistra');
-mqtt.subscribe(client, 'bateria');
-mqtt.recibeId(client);
-mqtt.recibeEstadoSensor(client);
-
 
 //Operaciones CRUD
 //------------------------------------------------
@@ -198,6 +196,9 @@ mongoUtil.connectToServer(function (err) {
 			}
 			db.collection("casa").updateOne({ homeUsu: myobj.casa }, {$set: {dispositivos: dispositivos}}, function (err, resDispUpdate) {
 				console.log("interruptor dispositivo actualizado");
+				/**Actualizamos estado interruptor*/
+				var mensajeEnvio = constResponseInterruptor + '#' + myobj.casa + '#' + myobj._id + '#';
+				client.publish(constResponseInterruptor, mensajeEnvio, { qos: 2, retain: false });   // Formato mensaje: respInterruptor#casa#idDisp#
 				res.sendStatus(200);
 			});
 		});
