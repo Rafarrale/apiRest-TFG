@@ -110,7 +110,7 @@ module.exports = {
         })
     },
     publish: function (client, topic, msg) {
-        client.publish(topic, msg, { qos: 2, retain: false })
+        client.publish(topic, msg, { qos: 1, retain: false })
     },
     recibeId: function (client) {
         var res;
@@ -132,7 +132,7 @@ module.exports = {
                             if (result != null) {
                                 console.log("Se encuentra en Casa");
                                 var res = constConfirma + '#' + result.homeUsu;
-                                client.publish(myId, res, { qos: 2, retain: false });
+                                client.publish(myId, res, { qos: 1, retain: false });
                                 /** Subscribimos el topic si ya se encuentra en casa para ponerlo en estado online u offline
                                  * solo si ya se encuentra en una casa
                                  */
@@ -143,10 +143,10 @@ module.exports = {
                                 db.collection("dispositivo").findOne({ _id: new ObjectID(myId) }, function (err, obj) {
                                     if (err) throw err;
                                     if (obj != null) {
-                                        client.publish(myId, constConfirmaDisp, { qos: 2, retain: false });
+                                        client.publish(myId, constConfirmaDisp, { qos: 1, retain: false });
                                     } else {
                                         console.log("Reseteando mC");
-                                        client.publish(myId, constElimina, { qos: 2, retain: false });
+                                        client.publish(myId, constElimina, { qos: 1, retain: false });
                                     }
                                 });
                             }
@@ -173,7 +173,7 @@ module.exports = {
                             console.log("1 dispositivo insertado");
                             res = JSON.stringify(result.insertedId);
                             res = res.replace(/['"]+/g, '');
-                            client.publish(mac, res, { qos: 2, retain: false });
+                            client.publish(mac, res, { qos: 1, retain: false });
                         });
                     }
                 });
@@ -268,19 +268,19 @@ module.exports = {
                                 if (auxEstadoAlarma == constArmar) {
                                     console.log('Armar');
                                     // Mandamos el estado de la alarma a los dispositivos
-                                    client.publish(topic, auxEstadoAlarma, { qos: 2, retain: false });
+                                    client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
                                 } else if (auxEstadoAlarma == consDesarmar) {
                                     console.log('Desarmar');
                                     // Mandamos el estado de la alarma a los dispositivos
-                                    client.publish(topic, auxEstadoAlarma, { qos: 2, retain: false });
+                                    client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
                                 } else if (auxEstadoAlarma == consCasa) {
                                     console.log('Casa');
                                     // Mandamos el estado de la alarma a los dispositivos
-                                    client.publish(topic, auxEstadoAlarma, { qos: 2, retain: false });
+                                    client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
                                 } else {
                                     console.log('Alarma');
                                     // Mandamos el estado de la alarma a los dispositivos
-                                    client.publish(topic, auxEstadoAlarma, { qos: 2, retain: false });
+                                    client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
                                 }
                             }
                         }
@@ -307,10 +307,10 @@ module.exports = {
                                         if (result.dispositivos[i].caracteristicas.activa) {
                                             console.log('activar');
                                             // Mandamos el estado del interruptor al dispositivo
-                                            client.publish(topic, 'true', { qos: 2, retain: false });
+                                            client.publish(topic, 'true', { qos: 1, retain: false });
                                         }else{
                                             console.log('desactivar');
-                                            client.publish(topic, 'false', { qos: 2, retain: false });
+                                            client.publish(topic, 'false', { qos: 1, retain: false });
                                         }
                                     }
                                 }

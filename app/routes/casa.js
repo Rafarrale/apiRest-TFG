@@ -256,7 +256,7 @@ mongoUtil.connectToServer(function (err) {
 			if(obj.dispositivos != null){
 				for(var i = 0; i < obj.dispositivos.length; i++){
 					var idDisp = (obj.dispositivos[i]._id).toString();
-					client.publish(idDisp, constElimina, { qos: 2, retain: false });
+					client.publish(idDisp, constElimina, { qos: 1, retain: false });
 				}
 			}
 			db.collection("casa").deleteOne(myquery, function (err, obj) {
