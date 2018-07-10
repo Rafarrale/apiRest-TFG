@@ -66,6 +66,8 @@ var constEsp = [
     }
 ];
 
+/* Opciones para MQTTS */ 
+/*
 var connectOptions = {
     host: "192.168.2.20",
     port: 8883,
@@ -81,13 +83,30 @@ var connectOptions = {
     password: 'BeNq_42?',
     rejectUnauthorized: false,
 };
+*/
+
+var connectOptions = {
+    host: "192.168.2.20",
+    port: 1883,
+    protocol: "mqtt",
+    keepalive: 10,
+    clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+    protocolId: "MQTT",
+    protocolVersion: 4,
+    clean: false,
+    reconnectPeriod: 1000,
+    connectTimeout: 1000,
+    username: 'usuario1',
+    password: 'BeNq_42?',
+    rejectUnauthorized: false,
+};
 
 module.exports = {
     connectToMQTT: mqtt.connect(connectOptions),
     subscribe: function (client, topic) {
         client.on('connect', function () {
             console.log('Topic subscrito: ' + topic);
-            client.subscribe(topic, { qos: 2 });
+            client.subscribe(topic);
         })
     },
     publish: function (client, topic, msg) {
@@ -118,7 +137,7 @@ module.exports = {
                                  * solo si ya se encuentra en una casa
                                  */
                                 var auxTopic = constEstado + '/' + mac;
-                                client.subscribe(auxTopic, { qos: 2 });
+                                client.subscribe(auxTopic);
                                 console.log('Subscrito a: ' + auxTopic);
                             } else {
                                 db.collection("dispositivo").findOne({ _id: new ObjectID(myId) }, function (err, obj) {

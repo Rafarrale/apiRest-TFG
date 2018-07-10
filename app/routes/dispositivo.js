@@ -241,7 +241,7 @@ mongoUtil.connectToServer(function (err) {
 								/**Subscribimos al estado para actualizar */
 								auxTopic = constEstado + '/' + mac;
 								var auxDataInit = constEstado + '#' + mac + '#' + estadoInicialDisp + '#';
-								client.subscribe(auxTopic, { qos: 2 });
+								client.subscribe(auxTopic);
 								console.log('Subscrito a: ' + auxTopic);
 								client.publish(auxTopic, auxDataInit, { qos: 2, retain: false });
 								res.sendStatus(200);
