@@ -273,15 +273,11 @@ module.exports = {
                                     console.log('Desarmar');
                                     // Mandamos el estado de la alarma a los dispositivos
                                     client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
-                                } else if (auxEstadoAlarma == consCasa) {
+                                } else {
                                     console.log('Casa');
                                     // Mandamos el estado de la alarma a los dispositivos
                                     client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
-                                } else {
-                                    console.log('Alarma');
-                                    // Mandamos el estado de la alarma a los dispositivos
-                                    client.publish(topic, auxEstadoAlarma, { qos: 1, retain: false });
-                                }
+                                } 
                             }
                         }
                     });
@@ -343,11 +339,6 @@ module.exports = {
                                     }
                                 }
                                 db.collection('casa').updateOne({ 'dispositivos.mac': mac }, { $set: { dispositivos: dispositivos } }, function (err, resultDispCasa) {
-                                    console.log('estado dispositivo casa actualizado');
-                                    if (dispositivo != null) {
-                                        tipoEstado = tipoEstado.charAt(0).toUpperCase() + tipoEstado.slice(1);
-                                        modules.enviarLog(dispositivo, tipoEstado);
-                                    }
                                 });
                             }
                         });
@@ -548,3 +539,5 @@ function validaTipo(tipo) {
     }
     return res;
 }
+
+module.exports.sonarSirena = sonarSirena;

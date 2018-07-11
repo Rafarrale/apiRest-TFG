@@ -7,6 +7,7 @@ var mqtt = require('../models/mqtt')
 
 /** Constantes */
 var constElimina = "elimina";
+var constI = 'I';
 var constConfAlarma = "confAlarma";
 var constAlarma = "alarma";
 var constResponseAlarma = 'respAlarma';
@@ -175,6 +176,14 @@ mongoUtil.connectToServer(function (err) {
 		var query = { homeUsu: auxHomeUsu };
 		var newValues = { $set: { "configuracion.estadoAlarma": auxEstadoAlarma } }
 		var dispositivos;
+		if(auxEstadoAlarma == constAlarma){
+			mqtt.sonarSirena(constI);
+		}
+
+		if (auxEstadoAlarma == consDesarmar) {
+			mqtt.sonarSirena(constO);
+		}
+
 		db.collection("casa").updateOne(query, newValues, function (err, result) {
 			db.collection("casa").findOne({ homeUsu: auxHomeUsu }, { configuracion: 1, passCasa: 1, tokens: 1, dispositivos: 1 }, function (err, result) {
 				if (err) throw err;
@@ -185,13 +194,10 @@ mongoUtil.connectToServer(function (err) {
 					if (dispositivos != null) {
 						if (dispositivos.length != 0) {
 							for (var i = 0; i < dispositivos.length; i++) {
-								// Mandamos el estado de la alarma a los dispositivos
-								var auxConfAlarma = constConfAlarma + '/' + dispositivos[i].mac;
+								if(auxEstadoAlarma != constAlarma && auxEstadoAlarma != consDesarmar){
+									// Mandamos el estado de la alarma a los dispositivos
+									var auxConfAlarma = constConfAlarma + '/' + dispositivos[i].mac;
 									mqtt.publish(client, auxConfAlarma, auxEstadoAlarma);
-								if (auxEstadoAlarma == consDesarmar) {
-									//alarma#idDisp#activar# 
-									var desactivaAlarma = constAlarma + '#' + dispositivos[i]._id + '#' + constO + '#';
-									mqtt.publish(client, constAlarma, desactivaAlarma);
 								}
 							}
 
