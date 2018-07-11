@@ -198,7 +198,7 @@ mongoUtil.connectToServer(function (err) {
 				console.log("interruptor dispositivo actualizado");
 				/**Actualizamos estado interruptor*/
 				var mensajeEnvio = constResponseInterruptor + '#' + myobj.casa + '#' + myobj._id + '#';
-				client.publish(constResponseInterruptor, mensajeEnvio, { qos: 1, retain: false });   // Formato mensaje: respInterruptor#casa#idDisp#
+				client.publish(constResponseInterruptor, mensajeEnvio, { qos: 2, retain: false });   // Formato mensaje: respInterruptor#casa#idDisp#
 				res.sendStatus(200);
 			});
 		});
@@ -236,14 +236,14 @@ mongoUtil.connectToServer(function (err) {
 								/**Actualizamos estado alarma*/
 								var auxTopic =  constConfAlarma + '/' + mac;
 								if(objCasa.configuracion != null){
-									client.publish(auxTopic, objCasa.configuracion.estadoAlarma, { qos: 1, retain: false });
+									client.publish(auxTopic, objCasa.configuracion.estadoAlarma, { qos: 2, retain: false });
 								}
 								/**Subscribimos al estado para actualizar */
 								auxTopic = constEstado + '/' + mac;
 								var auxDataInit = constEstado + '#' + mac + '#' + estadoInicialDisp + '#';
-								client.subscribe(auxTopic);
+								client.subscribe(auxTopic, {qos:2});
 								console.log('Subscrito a: ' + auxTopic);
-								client.publish(auxTopic, auxDataInit, { qos: 1, retain: false });
+								client.publish(auxTopic, auxDataInit, { qos: 2, retain: false });
 								res.sendStatus(200);
 							});
 						});
@@ -270,7 +270,7 @@ mongoUtil.connectToServer(function (err) {
 			db.collection("casa").updateOne(myquery, { $set: { dispositivos: auxDispArray } }, function (err, objCasa) {
 				console.log("1 document deleted on home");
 				console.log("Reseteando mC");
-				client.publish(miId, constElimina, { qos: 1, retain: false });
+				client.publish(miId, constElimina, { qos: 2, retain: false });
 				res.sendStatus(200);
 			});
 		});
