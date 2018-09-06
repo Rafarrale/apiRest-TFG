@@ -8,11 +8,17 @@ var mqtt = require('../models/mqtt')
 /** Constantes */
 var constElimina = "elimina";
 var constI = 'I';
+var constO = 'O';
+var constCameraNull = 'not';
 var constConfAlarma = "confAlarma";
 var constAlarma = "alarma";
 var constResponseAlarma = 'respAlarma';
 var constResponseInterruptor = 'respInterruptor';
 var ObjectID = require('mongodb').ObjectID;
+var consDesarmar = "desarmar";
+var consArmar = "armar";
+var consCasa = "casa";
+var macAddr;
 
 // router middleware
 router.use(function (req, res, next) {
@@ -42,9 +48,6 @@ mqtt.responseEstadoInterruptor(client);
 mqtt.recibeId(client);
 mqtt.recibeEstadoSensor(client);
 
-
-var consDesarmar = "desarmar";
-var constO = 'O';
 
 
 //Operaciones CRUD
@@ -169,32 +172,42 @@ mongoUtil.connectToServer(function (err) {
 		});
 	});
 
-
-	router.get('/giveEstado/:estadoAlarma/:homeUsu', function (req, res) {
+	
+	// GET Casa
+	router.get('/giveHome/casa/:nomCasa', function (req, res) {
+		var nomCasa = req.params.nomCasa;
+		db.collection("casa").find({ homeUsu: nomCasa }).toArray(function (err, result) {
+			if (err) throw err;
+			console.log(result);
+			if (result == null) {
+				res.sendStatus(404);
+			} else {
+				res.send(result);
+			}
+		});
+	});
+	
+	router.get('/giveEstado/:estadoAlarma/:homeUsu/:idPlaca', function (req, res) {
 		var auxEstadoAlarma = req.params.estadoAlarma;
 		var auxHomeUsu = req.params.homeUsu;
+		var auxIdPlaca = req.params.idPlaca;
+		var idPlacaActual;
 		var query = { homeUsu: auxHomeUsu };
 		var newValues = { $set: { "configuracion.estadoAlarma": auxEstadoAlarma } }
 		var dispositivos;
-		if(auxEstadoAlarma == constAlarma){
-			mqtt.sonarSirena(constI);
-		}
-
-		if (auxEstadoAlarma == consDesarmar) {
-			mqtt.sonarSirena(constO);
-		}
 
 		db.collection("casa").updateOne(query, newValues, function (err, result) {
-			db.collection("casa").findOne({ homeUsu: auxHomeUsu }, { configuracion: 1, passCasa: 1, tokens: 1, dispositivos: 1 }, function (err, result) {
+			db.collection("casa").findOne({ homeUsu: auxHomeUsu }, { configuracion: 1, passCasa: 1, tokens: 1, dispositivos: 1 , idPlaca: 1}, function (err, result) {
 				if (err) throw err;
 				if (result == null) {
 					res.sendStatus(404);
 				} else {
 					dispositivos = result.dispositivos;
+					idPlacaActual = result.idPlaca;
 					if (dispositivos != null) {
 						if (dispositivos.length != 0) {
 							for (var i = 0; i < dispositivos.length; i++) {
-								if(auxEstadoAlarma != constAlarma && auxEstadoAlarma != consDesarmar){
+								if(auxEstadoAlarma != constAlarma){
 									// Mandamos el estado de la alarma a los dispositivos
 									var auxConfAlarma = constConfAlarma + '/' + dispositivos[i].mac;
 									mqtt.publish(client, auxConfAlarma, auxEstadoAlarma);
@@ -204,9 +217,28 @@ mongoUtil.connectToServer(function (err) {
 						}
 					}
 					res.send(result);
+					if(idPlacaActual != null && idPlacaActual == macAddr){
+						
+						if(auxEstadoAlarma == constAlarma){
+							mqtt.sonarSirena(constI);
+							console.log("Activando alarma")
+						}
+
+						if (auxEstadoAlarma == consDesarmar) {
+							mqtt.sonarSirena(constO); 
+						}
+						
+						if (auxEstadoAlarma == consArmar) {
+							
+						}
+						
+						else if (auxEstadoAlarma == consCasa) {
+							
+						}
+					}
 				}
 			});
-		}); 
+		});
 	});
 
 	// POST /api/users gets urlencodedParser bodies
@@ -219,6 +251,7 @@ mongoUtil.connectToServer(function (err) {
 	router.post('/insertCasa', jsonParser, function (req, res) {
 		var myobj = req.body;
 		var homeUsuRest = req.body.homeUsu;
+		myobj['idPlaca'] = macAddr;
 		db.collection("casa").insertOne(myobj, function (err, result) {
 			if (err) throw err;
 			console.log("1 document inserted");
@@ -274,6 +307,11 @@ mongoUtil.connectToServer(function (err) {
 	});
 });
 
+// Fetch the computer's mac address for a specfici interace
+require('getmac').getMac({iface: 'eth0'}, function(err, macAddress){
+    if (err)  throw err
+    macAddr = macAddress;
+})
 
 
 module.exports = router;

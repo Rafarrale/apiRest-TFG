@@ -5,12 +5,12 @@ var ObjectID = require('mongodb').ObjectID;
 var modules = require('../models/modules');
 
 /**Variables sirena */
-// TODO: descomentar para sirena
-/*var Gpio = require('pigpio').Gpio,
+var Gpio = require('pigpio').Gpio,
         altavoz = new Gpio(18, {mode: Gpio.OUTPUT}),
         dutyCycle = 500000;
 var intervalo;
-*/
+var macAddr;
+
 
 /* valores ESP */
 var constElimina = "elimina";
@@ -93,7 +93,7 @@ var connectOptions = {
     clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
     protocolId: "MQTT",
     protocolVersion: 4,
-    clean: false,
+    clean: true,
     reconnectPeriod: 1000,
     connectTimeout: 1000,
     username: 'usuario1',
@@ -198,8 +198,6 @@ module.exports = {
                             var dispositivo = {};
                             dispositivo['_id'] = idDisp;
                             if (activar == constI) {
-                                console.log('Activa Sirena');
-                                sonarSirena(activar);
                                 /** Envio del Log */
                                 modules.enviarLog(dispositivo, constAbierto);
                                 /** Envio de la notificacion */
@@ -216,6 +214,15 @@ module.exports = {
                                         casa = dispositivo.casa;
                                     }
                                 }
+                                db.collection("casa").findOne({ homeUsu: casa }, { idPlaca: 1 }, function (err, resultCasa) {
+									if (err) throw err;
+									console.log("idPlaca: " + resultCasa.idPlaca);
+									if(resultCasa.idPlaca == macAddr){
+										console.log('Activa Sirena');
+										sonarSirena(activar);
+									}
+								});
+                                
                                 var mensaje = "Sensor " + name + " de la Habitación " + habitacion;
                                 for (i = 0; i < result.tokens.length; i++) {
                                     notificaciones.func(result.tokens[i].token, mensaje, casa);
@@ -408,21 +415,19 @@ module.exports = {
     }
 }
 
-function sonarSirena(activar) {
+function sonarSirena(activar, casa) {
     if (activar == constI) {
         console.log('sonando');
-        /* TODO: descomentar para sirena
         if(intervalo == null){
 			activarSirena();
         }
-        */
+        
     } else if (activar == constO) {
         console.log('desactivando sonoro');
-        /* TODO: descomentar para sirena
         desactivarSirena();
         intervalo = null;
         altavoz.hardwarePwmWrite(0, 0);
-        */
+
     }
 }
 
@@ -539,5 +544,11 @@ function validaTipo(tipo) {
     }
     return res;
 }
+
+// Fetch the computer's mac address for a specfici interace
+require('getmac').getMac({iface: 'eth0'}, function(err, macAddress){
+    if (err)  throw err
+    macAddr = macAddress;
+})
 
 module.exports.sonarSirena = sonarSirena;

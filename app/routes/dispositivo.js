@@ -98,12 +98,20 @@ mongoUtil.connectToServer(function (err) {
 		var auxCampoClaveDisp = req.params.campoClaveDisp;
 		var query = { claveDisp: auxCampoClaveDisp };
 		var filtro = {};
-		db.collection("dispositivo").find(query, filtro).toArray(function (err, result) {
+		db.collection("claveDispositivos").find(query, filtro).toArray(function (err, result) {
 			if (err) throw err;
-			if (result == null) {
-				res.sendStatus(404);
+			console.log(result);
+			if (result.length == 0) {
+				res.sendStatus(403);
 			} else {
-				res.send(result);
+				db.collection("dispositivo").find(query, filtro).toArray(function (err, result) {
+				if (err) throw err;
+					if (result == null) {
+						res.sendStatus(404);
+					} else {
+						res.send(result);
+					}
+				});
 			}
 		});
 	});

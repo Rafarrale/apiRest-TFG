@@ -5,10 +5,9 @@ var express = require('express'),
 var fs = require('fs');
 var https = require('https');
 var port = 4433;
-var key = fs.readFileSync('./certificados/MiNodeServer.key');
-var cert = fs.readFileSync( './certificados/MiNodeServer.crt' );
-var ca = fs.readFileSync( './certificados/MiCA.crt' );
-    
+var key = fs.readFileSync(__dirname + '/certificados/MiNodeServer.key');
+var cert = fs.readFileSync(__dirname + '/certificados/MiNodeServer.crt' );
+var ca = fs.readFileSync(__dirname + '/certificados/MiCA.crt' );
 
 // Include routes
 var indexRouteUsu = require('./app/routes/usuario.js');
@@ -28,7 +27,7 @@ var options = {
 var myIp = 'https://' + ip.address() + ':' + port;
 //Abrimos nuestro servidor
 //app.listen(port);
-console.log('server listening on', myIp);
+console.log('server listening on', myIp); 
 
 https.createServer(options, app).listen(port);
 
